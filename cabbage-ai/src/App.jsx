@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import axios from "axios";
 
 const BACKEND_URL = "https://cabbage-ai.onrender.com";
@@ -189,6 +189,12 @@ export default function App() {
   const [uploading, setUploading] = useState(false);
   const [result, setResult] = useState(null);
   const [progress, setProgress] = useState(0);
+  const progressTimerRef = useRef(null);
+
+  // Clean up timer when component unmounts
+  useEffect(() => {
+    return () => clearInterval(progressTimerRef.current);
+  }, []);
 
   function handleFileSelected(f) {
     setFile(f);
@@ -206,18 +212,20 @@ export default function App() {
     const formData = new FormData();
     formData.append("file", file);
 
+    // clear any previous timer before starting
+    clearInterval(progressTimerRef.current);
+
     // simulate exponential slowdown
     let fakeProgress = 0;
-    const progressTimer = setInterval(() => {
-      fakeProgress += (100 - fakeProgress) * 0.01;
+    progressTimerRef.current = setInterval(() => {
+      fakeProgress += (100 - fakeProgress) * 0.015; // smooth curve
       if (fakeProgress >= 98) fakeProgress = 98;
       setProgress(fakeProgress);
-    }, 300);
+    }, 250);
 
     try {
       const res = await axios.post(`${BACKEND_URL}/predict`, formData);
-
-      clearInterval(progressTimer);
+      clearInterval(progressTimerRef.current);
       setProgress(100);
 
       setTimeout(() => {
@@ -226,12 +234,21 @@ export default function App() {
         setUploading(false);
       }, 500);
     } catch (err) {
-      clearInterval(progressTimer);
+      clearInterval(progressTimerRef.current);
       setProgress(100);
       console.error("Upload/prediction failed:", err);
       alert("Prediction failed. Check console for details.");
       setUploading(false);
     }
+  }
+
+  function handleReset() {
+    clearInterval(progressTimerRef.current);
+    setFile(null);
+    setPreviewUrl(null);
+    setResult(null);
+    setProgress(0);
+    setUploading(false);
   }
 
   function parsePrediction(data) {
@@ -275,11 +292,7 @@ export default function App() {
                   </button>
                   <button
                     className="px-4 py-2 rounded border border-[#D84040] text-[#D84040] bg-white cursor-pointer"
-                    onClick={() => {
-                      setFile(null);
-                      setPreviewUrl(null);
-                      setResult(null);
-                    }}
+                    onClick={handleReset}
                   >
                     Reset
                   </button>
