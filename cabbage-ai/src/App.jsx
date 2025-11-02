@@ -1,7 +1,7 @@
 import React, { useState, useRef } from "react";
 import axios from "axios";
 
-const BACKEND_URL = "https://cabbage-ai.onrender.com/predict";
+const BACKEND_URL = "https://cabbage-ai.onrender.com";
 
 function Nav({ page, setPage }) {
   return (
@@ -187,31 +187,29 @@ export default function App() {
   }
 
   async function handleUpload() {
-    if (!file) return alert("Select an image first");
-    setUploading(true);
-    setResult(null);
+  if (!file) return alert("Select an image first");
+  setUploading(true);
+  setResult(null);
 
-    const formData = new FormData();
-    formData.append("file", file);
+  const formData = new FormData();
+  formData.append("file", file);
 
-    try {
-      const res = await axios.post(BACKEND_URL, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-        timeout: 120000,
-      });
+  try {
+    const res = await axios.post(`${BACKEND_URL}/predict`, formData, {
+      timeout: 120000,
+      withCredentials: false,
+    });
 
-      // We try to parse the response into a common shape
-      const parsed = parsePrediction(res.data);
-      setResult(parsed);
-    } catch (err) {
-      console.error(err);
-      alert(
-        "Upload/prediction failed. Check console for details and ensure backend CORS is enabled."
-      );
-    } finally {
-      setUploading(false);
-    }
+    const parsed = parsePrediction(res.data);
+    setResult(parsed);
+  } catch (err) {
+    console.error("Upload/prediction failed:", err);
+    alert("Prediction failed. Check console for more details.");
+  } finally {
+    setUploading(false);
   }
+}
+
 
   function parsePrediction(data) {
     // If backend returns an object like { label, confidence, description }
