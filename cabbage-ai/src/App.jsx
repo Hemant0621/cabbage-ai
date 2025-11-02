@@ -164,14 +164,32 @@ export default function App() {
   const [uploading, setUploading] = useState(false);
   const [result, setResult] = useState(null);
   const [progress, setProgress] = useState(0);
-  const progressRef = useRef(null);
-
   function handleFileSelected(f) {
     setFile(f);
     setResult(null);
     const url = URL.createObjectURL(f);
     setPreviewUrl(url);
   }
+
+  function parsePrediction(data) {
+  if (!data) return null;
+
+  // If backend returns an object like { label, confidence }
+  if (data.label && data.confidence) return { predictions: [data] };
+
+  // If already structured
+  if (Array.isArray(data.predictions) || data.predictions) return data;
+
+  // If backend returns { prediction: {...} }
+  if (data.prediction) return { predictions: [data.prediction] };
+
+  // If backend returns an array directly
+  if (Array.isArray(data)) return { predictions: data };
+
+  // Fallback — stringify unknown responses
+  return { predictions: [{ label: JSON.stringify(data).slice(0, 120) }] };
+}
+
 
   async function handleUpload() {
     if (!file) return alert("Select an image first");
@@ -184,7 +202,7 @@ export default function App() {
 
     let fakeProgress = 0;
     const progressTimer = setInterval(() => {
-      fakeProgress += (100 - fakeProgress) * 0.007;
+      fakeProgress += (100 - fakeProgress) * 0.01;
       if (fakeProgress >= 98) fakeProgress = 98; 
       setProgress(fakeProgress);
     }, 300);
