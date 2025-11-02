@@ -1,56 +1,114 @@
-import React, { useState, useRef } from 'react';
-import axios from 'axios';
+import React, { useState, useRef } from "react";
+import axios from "axios";
 
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://127.0.0.1:8000/predict';
+const BACKEND_URL = "https://cabbage-ai.onrender.com/predict";
 
-function Nav({ page, setPage }){
+function Nav({ page, setPage }) {
   return (
     <nav className="w-full flex items-center justify-between py-4 px-6 md:px-12 ">
       <div className="flex items-center gap-4">
-        <div className="w-10 h-10 rounded-md bg-[#D84040] flex items-center justify-center text-white font-bold">CA</div>
+        <div className="w-10 h-10 rounded-md bg-[#D84040] flex items-center justify-center text-white font-bold">
+          CA
+        </div>
         <h1 className="text-xl font-semibold text-white">cauliflowerAI</h1>
       </div>
       <div className="flex items-center gap-4">
-        <button onClick={()=>setPage('home')} className={`px-3 py-2 rounded cursor-pointer ${page==='home' ? 'bg-[#8E1616] text-white' : 'text-white hover:bg-[#f5dcdc] hover:text-[#D84040]'}`}>Home</button>
-        <button onClick={()=>setPage('learn')} className={`px-3 py-2 rounded cursor-pointer ${page==='learn' ? 'bg-[#8E1616] text-white' : 'text-white hover:bg-[#f5dcdc] hover:text-[#D84040]'}`}>Learn</button>
-        <button onClick={()=>setPage('about')} className={`px-3 py-2 rounded cursor-pointer ${page==='about' ? 'bg-[#8E1616] text-white' : 'text-white hover:bg-[#f5dcdc] hover:text-[#D84040]'}`}>About</button>
+        <button
+          onClick={() => setPage("home")}
+          className={`px-3 py-2 rounded cursor-pointer ${
+            page === "home"
+              ? "bg-[#8E1616] text-white"
+              : "text-white hover:bg-[#f5dcdc] hover:text-[#D84040]"
+          }`}
+        >
+          Home
+        </button>
+        <button
+          onClick={() => setPage("learn")}
+          className={`px-3 py-2 rounded cursor-pointer ${
+            page === "learn"
+              ? "bg-[#8E1616] text-white"
+              : "text-white hover:bg-[#f5dcdc] hover:text-[#D84040]"
+          }`}
+        >
+          Learn
+        </button>
+        <button
+          onClick={() => setPage("about")}
+          className={`px-3 py-2 rounded cursor-pointer ${
+            page === "about"
+              ? "bg-[#8E1616] text-white"
+              : "text-white hover:bg-[#f5dcdc] hover:text-[#D84040]"
+          }`}
+        >
+          About
+        </button>
       </div>
     </nav>
-  )
+  );
 }
 
-function UploadBox({ onFileSelected, uploading, previewUrl }){
+function UploadBox({ onFileSelected, uploading, previewUrl }) {
   const fileInputRef = useRef();
   const [isDragOver, setIsDragOver] = useState(false);
 
-  function handleFiles(files){
+  function handleFiles(files) {
     const f = files?.[0];
-    if(!f) return;
-    if(!f.type.startsWith('image/')) return alert('Please upload an image file');
+    if (!f) return;
+    if (!f.type.startsWith("image/"))
+      return alert("Please upload an image file");
     onFileSelected(f);
   }
 
   return (
     <div className="w-full mx-auto">
       <div
-        onDragOver={(e)=>{ e.preventDefault(); setIsDragOver(true); }}
-        onDragLeave={(e)=>{ e.preventDefault(); setIsDragOver(false); }}
-        onDrop={(e)=>{ e.preventDefault(); setIsDragOver(false); handleFiles(e.dataTransfer.files); }}
-        onClick={()=>fileInputRef.current.click()}
-        className={`relative rounded-xl cursor-pointer p-8 flex items-center justify-center transition-shadow ${isDragOver ? 'shadow-2xl' : 'shadow'} bg-white`}
+        onDragOver={(e) => {
+          e.preventDefault();
+          setIsDragOver(true);
+        }}
+        onDragLeave={(e) => {
+          e.preventDefault();
+          setIsDragOver(false);
+        }}
+        onDrop={(e) => {
+          e.preventDefault();
+          setIsDragOver(false);
+          handleFiles(e.dataTransfer.files);
+        }}
+        onClick={() => fileInputRef.current.click()}
+        className={`relative rounded-xl cursor-pointer p-8 flex items-center justify-center transition-shadow ${
+          isDragOver ? "shadow-2xl" : "shadow"
+        } bg-white`}
         style={{ minHeight: 340 }}
       >
         {!previewUrl ? (
-          <div  className="text-center">
+          <div className="text-center">
             <div className="mx-auto w-64 h-64 rounded-full border-4 border-dashed border-[#D84040] flex items-center justify-center mb-6">
-              <img src="/drag.png" alt="upload" className="h-24 w-24 text-[#1D1616]" />
+              <img
+                src="/drag.png"
+                alt="upload"
+                className="h-24 w-24 text-[#1D1616]"
+              />
             </div>
-            <h2 className="text-2xl font-semibold text-[#1D1616]">Drop your image here</h2>
-            <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={(e)=>handleFiles(e.target.files)} />
+            <h2 className="text-2xl font-semibold text-[#1D1616]">
+              Drop your image here
+            </h2>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => handleFiles(e.target.files)}
+            />
           </div>
         ) : (
           <div className="w-full h-full flex items-center justify-center">
-            <img src={previewUrl} alt="preview" className="max-h-[300px] object-contain rounded-md shadow" />
+            <img
+              src={previewUrl}
+              alt="preview"
+              className="max-h-[300px] object-contain rounded-md shadow"
+            />
           </div>
         )}
 
@@ -64,100 +122,123 @@ function UploadBox({ onFileSelected, uploading, previewUrl }){
         )}
       </div>
     </div>
-  )
+  );
 }
 
-function ResultCard({ result }){
-  if(!result) return null;
+function ResultCard({ result }) {
+  if (!result) return null;
 
   // Support single object or array
-  const predictions = Array.isArray(result.predictions) ? result.predictions : (result.predictions ? [result.predictions] : []);
+  const predictions = Array.isArray(result.predictions)
+    ? result.predictions
+    : result.predictions
+    ? [result.predictions]
+    : [];
 
   return (
     <div className=" mx-auto mt-6 p-6 bg-white rounded-xl shadow">
       <h3 className="text-lg font-semibold text-[#1D1616]">Analysis</h3>
-      {predictions.length===0 && (<p className="mt-3 text-sm text-gray-600">No predictions found in response.</p>)}
+      {predictions.length === 0 && (
+        <p className="mt-3 text-sm text-gray-600">
+          No predictions found in response.
+        </p>
+      )}
 
-      {predictions.map((p, idx)=> (
+      {predictions.map((p, idx) => (
         <div key={idx} className="mt-4 border-t pt-4">
           <div className="flex items-center justify-between">
             <div>
-              <div className="text-md font-semibold text-[#8E1616]">{p.label || p.disease || 'Unknown'}</div>
-              <div className="text-xs text-gray-500">Confidence: {typeof p.confidence==='number' ? (p.confidence*100).toFixed(2)+'%' : p.confidence}</div>
+              <div className="text-md font-semibold text-[#8E1616]">
+                {p.label || p.disease || "Unknown"}
+              </div>
+              <div className="text-xs text-gray-500">
+                Confidence:{" "}
+                {typeof p.confidence === "number"
+                  ? (p.confidence * 100).toFixed(2) + "%"
+                  : p.confidence}
+              </div>
             </div>
-            <div className="text-sm text-gray-600">{p.severity ? `Severity: ${p.severity}` : ''}</div>
+            <div className="text-sm text-gray-600">
+              {p.severity ? `Severity: ${p.severity}` : ""}
+            </div>
           </div>
 
-          {p.description && <p className="mt-3 text-sm text-gray-700">{p.description}</p>}
+          {p.description && (
+            <p className="mt-3 text-sm text-gray-700">{p.description}</p>
+          )}
 
-          {p.pesticides && p.pesticides.length>0 && (
+          {p.pesticides && p.pesticides.length > 0 && (
             <div className="mt-3">
-              <div className="text-sm font-medium text-[#1D1616]">Suggested pesticides / treatments</div>
+              <div className="text-sm font-medium text-[#1D1616]">
+                Suggested pesticides / treatments
+              </div>
               <ul className="mt-2 list-disc list-inside text-sm text-gray-700">
-                {p.pesticides.map((d,i)=> <li key={i}>{d}</li>)}
+                {p.pesticides.map((d, i) => (
+                  <li key={i}>{d}</li>
+                ))}
               </ul>
             </div>
           )}
 
-          {p.tips && (
-            <div className="mt-3 text-sm text-gray-700">{p.tips}</div>
-          )}
+          {p.tips && <div className="mt-3 text-sm text-gray-700">{p.tips}</div>}
         </div>
       ))}
     </div>
-  )
+  );
 }
 
-export default function App(){
-  const [page, setPage] = useState('home');
+export default function App() {
+  const [page, setPage] = useState("home");
   const [file, setFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [result, setResult] = useState(null);
 
-  function handleFileSelected(f){
+  function handleFileSelected(f) {
     setFile(f);
     setResult(null);
     const url = URL.createObjectURL(f);
     setPreviewUrl(url);
   }
 
-  async function handleUpload(){
-    if(!file) return alert('Select an image first');
+  async function handleUpload() {
+    if (!file) return alert("Select an image first");
     setUploading(true);
     setResult(null);
 
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append("file", file);
 
-    try{
+    try {
       const res = await axios.post(BACKEND_URL, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
+        headers: { "Content-Type": "multipart/form-data" },
         timeout: 120000,
       });
 
       // We try to parse the response into a common shape
       const parsed = parsePrediction(res.data);
       setResult(parsed);
-    }catch(err){
+    } catch (err) {
       console.error(err);
-      alert('Upload/prediction failed. Check console for details and ensure backend CORS is enabled.');
-    }finally{
+      alert(
+        "Upload/prediction failed. Check console for details and ensure backend CORS is enabled."
+      );
+    } finally {
       setUploading(false);
     }
   }
 
-  function parsePrediction(data){
+  function parsePrediction(data) {
     // If backend returns an object like { label, confidence, description }
-    if(!data) return null;
-    if(data.label && data.confidence) return { predictions: [data] };
+    if (!data) return null;
+    if (data.label && data.confidence) return { predictions: [data] };
     // If already shaped
-    if(Array.isArray(data.predictions) || data.predictions) return data;
+    if (Array.isArray(data.predictions) || data.predictions) return data;
     // If backend returns { prediction: {...} }
-    if(data.prediction) return { predictions: [data.prediction] };
+    if (data.prediction) return { predictions: [data.prediction] };
     // Otherwise attempt to coerce
-    if(Array.isArray(data)) return { predictions: data };
-    return { predictions: [{ label: JSON.stringify(data).slice(0,120) }] };
+    if (Array.isArray(data)) return { predictions: data };
+    return { predictions: [{ label: JSON.stringify(data).slice(0, 120) }] };
   }
 
   return (
@@ -165,66 +246,275 @@ export default function App(){
       <Nav page={page} setPage={setPage} />
 
       <main className="py-10 border-2">
-        {page==='home' && (
+        {page === "home" && (
           <section>
             <div className="w-full mx-auto px-32">
-              <h2 className="text-3xl font-bold text-white mb-4">Diagnose cauliflower health — upload a photo</h2>
-              <p className="text-white mb-6">Quickly upload a picture of a cauliflower leaf or the full plant. Our model will analyze and provide likely issues and suggested treatments.</p>
+              <h2 className="text-3xl font-bold text-white mb-4">
+                Diagnose cauliflower health — upload a photo
+              </h2>
+              <p className="text-white mb-6">
+                Quickly upload a picture of a cauliflower leaf or the full
+                plant. Our model will analyze and provide likely issues and
+                suggested treatments.
+              </p>
 
-              <UploadBox onFileSelected={handleFileSelected} uploading={uploading} previewUrl={previewUrl} />
+              <UploadBox
+                onFileSelected={handleFileSelected}
+                uploading={uploading}
+                previewUrl={previewUrl}
+              />
 
               <div className=" mx-auto mt-6 flex gap-3">
-                <button className="px-4 py-2 rounded bg-[#D84040] text-white font-medium cursor-pointer" onClick={handleUpload} disabled={uploading}>Upload & Predict</button>
-                <button className="px-4 py-2 rounded border border-[#D84040] text-[#D84040] bg-white cursor-pointer" onClick={()=>{ setFile(null); setPreviewUrl(null); setResult(null); }}>Reset</button>
+                <button
+                  className="px-4 py-2 rounded bg-[#D84040] text-white font-medium cursor-pointer"
+                  onClick={handleUpload}
+                  disabled={uploading}
+                >
+                  Upload & Predict
+                </button>
+                <button
+                  className="px-4 py-2 rounded border border-[#D84040] text-[#D84040] bg-white cursor-pointer"
+                  onClick={() => {
+                    setFile(null);
+                    setPreviewUrl(null);
+                    setResult(null);
+                  }}
+                >
+                  Reset
+                </button>
                 <div className="ml-auto text-sm text-gray-500 flex items-center gap-3">
                   <div className="w-3 h-3 rounded-full bg-[#1D1616]" />
                 </div>
               </div>
 
               <ResultCard result={result} />
-
             </div>
           </section>
         )}
 
-        {page==='about' && (
-          <section className="mx-32  bg-white p-8 rounded-xl shadow">
-            <h2 className="text-2xl font-bold text-[#1D1616]">About cauliflowerAI</h2>
-            <p className="mt-3 text-gray-700">cauliflowerAI uses a trained computer-vision model (e.g. YOLO / classification ensemble) to detect visual symptoms on cauliflower plants. The backend receives an image, runs inference, and returns likely labels with confidence scores and recommended treatments. This frontend is a lightweight React + Tailwind interface to make the workflow simple for farmers and agronomists.</p>
+        {page === "about" && (
+          <section className="max-w-4xl mx-auto bg-white p-10 mt-10 rounded-2xl shadow-lg text-[#1D1616]">
+            <h2 className="text-3xl font-bold mb-4 text-[#8E1616]">
+              About the Project
+            </h2>
 
-            <h3 className="mt-6 font-semibold text-[#8E1616]">How it works</h3>
-            <ul className="list-disc list-inside mt-2 text-gray-700">
-              <li>Upload image of plant/leaf</li>
-              <li>Image is sent to backend via multipart/form-data</li>
-              <li>Backend runs model and returns predictions</li>
-              <li>Frontend parses and displays disease details, confidence and treatments</li>
+            <p className="text-gray-700 leading-relaxed mb-4">
+              <strong>Project Title:</strong> Real-Time Detection and Quality
+              Grading of Cauliflower and Broccoli Using YOLOv8 Deep Learning
+            </p>
+
+            <p className="text-gray-700 mb-4">
+              Agriculture is the foundation of our global food supply, yet
+              diseases in crops like cauliflower and broccoli continue to
+              threaten yields and farmer livelihoods. Traditional inspection
+              methods are slow, subjective, and often lead to late detection.
+              Our project tackles this issue by leveraging{" "}
+              <strong>YOLOv8 Deep Learning</strong> for real-time image-based
+              disease detection and quality grading.
+            </p>
+
+            <p className="text-gray-700 mb-4">
+              The system identifies three major diseases —{" "}
+              <em>Bacterial Soft Rot</em>, <em>Black Rot</em>, and{" "}
+              <em>Downy Mildew</em> — and classifies samples into market quality
+              categories such as <strong>Good</strong>, <strong>Fair</strong>,
+              and <strong>Poor</strong>. By merging and cleaning data from four
+              Roboflow sources, we trained a robust model capable of high
+              accuracy under real-world farm conditions.
+            </p>
+
+            <ul className="list-disc list-inside text-gray-700 mb-4">
+              <li>
+                <strong>mAP@0.5:</strong> 90.28%
+              </li>
+              <li>
+                <strong>Precision:</strong> 93.05%
+              </li>
+              <li>
+                <strong>Recall:</strong> 86.38%
+              </li>
             </ul>
 
-            <h3 className="mt-6 font-semibold text-[#8E1616]">Integration tips</h3>
+            <p className="text-gray-700 mb-8">
+              These results validate the system’s readiness for deployment in
+              web, mobile, and drone-based agricultural solutions. The goal is
+              to bring AI directly into the hands of farmers — improving yield,
+              minimizing disease spread, and driving smarter, data-backed
+              decision-making.
+            </p>
+
+            <h3 className="text-2xl font-semibold mb-3 text-[#8E1616]">
+              Contributions
+            </h3>
+            <ul className="list-disc list-inside text-gray-700 mb-6">
+              <li>
+                <strong>Hemant Kumar:</strong> Led frontend development and
+                full-stack integration. Built the React + Tailwind interface and
+                established seamless communication between the user uploads and
+                backend predictions.
+              </li>
+              <li>
+                <strong>Prajwal Nagle:</strong> Engineered the deep learning
+                pipeline, including dataset preprocessing, augmentation, and
+                YOLOv8 optimization to balance accuracy and speed.
+              </li>
+              <li>
+                <strong>Sailesh Kar:</strong> Conducted research, performance
+                benchmarking, and technical documentation — ensuring academic
+                rigor and aligning the model’s results with industry benchmarks.
+              </li>
+            </ul>
+
+            <h3 className="text-2xl font-semibold mb-3 text-[#8E1616]">
+              Impact & Vision
+            </h3>
+            <p className="text-gray-700 mb-4">
+              This project goes beyond cauliflower and broccoli. It lays the
+              groundwork for an AI-powered agricultural revolution, capable of
+              extending to other crops like cabbage, spinach, and lettuce. The
+              vision is to build an ecosystem where every farmer has a smart AI
+              assistant capable of diagnosing plant health instantly.
+            </p>
+
+            <p className="text-gray-700 italic">
+              “Empowering agriculture through innovation — one leaf at a time.”
+            </p>
           </section>
         )}
 
-        {page==='learn' && (
-          <section className="mx-32 bg-white p-8 rounded-xl shadow">
-            <h2 className="text-2xl font-bold text-[#1D1616]">Learn: Grow healthier cauliflowers</h2>
-            <ol className="list-decimal list-inside mt-3 text-gray-700">
-              <li>Choose disease-resistant varieties and certified seeds.</li>
-              <li>Maintain good field sanitation: remove infected debris and crop rotation.</li>
-              <li>Ensure proper spacing & drainage; water in the morning to reduce leaf wetness duration.</li>
-              <li>Balanced fertilization: avoid excessive nitrogen which increases susceptibility.</li>
-              <li>Scout regularly and use integrated pest management (IPM) approaches before resorting to chemicals.</li>
-            </ol>
+        {page === "learn" && (
+          <section className="max-w-4xl mx-auto bg-white p-10 mt-10 rounded-2xl shadow-lg text-[#1D1616]">
+            <h2 className="text-3xl font-bold mb-6 text-[#8E1616]">
+              Learn: Cabbage, Cauliflower & Broccoli Diseases
+            </h2>
+            <p className="text-gray-700 mb-8">
+              Early identification of plant diseases is key to saving crops and
+              maintaining high yield quality. Below are the major diseases
+              detected by our AI model, along with their symptoms, causes, and
+              recommended management practices.
+            </p>
 
-            <div className="mt-6 text-sm text-gray-600">This section can be expanded later with region-specific protocols, links to pesticide datasheets, and step-by-step video guides.</div>
+            {/* Bacterial Soft Rot */}
+            <div className="mb-10">
+              <h3 className="text-2xl font-semibold text-[#8E1616] mb-2">
+                1. Bacterial Soft Rot
+              </h3>
+              <p className="text-gray-700 mb-2">
+                <strong>Cause:</strong> <em>Pectobacterium carotovorum</em> and{" "}
+                <em>Erwinia carotovora</em> — bacteria that invade plant tissues
+                through wounds or natural openings.
+              </p>
+              <p className="text-gray-700 mb-2">
+                <strong>Symptoms:</strong> Watery, mushy, and foul-smelling
+                decay usually starting at the stem base or inner leaves. The
+                affected tissues become slimy and collapse quickly.
+              </p>
+              <p className="text-gray-700 mb-2">
+                <strong>Favorable Conditions:</strong> High humidity and
+                temperatures between 25–35°C accelerate bacterial growth.
+              </p>
+              <p className="text-gray-700 mb-2">
+                <strong>Management:</strong> Avoid overhead irrigation, ensure
+                proper field drainage, and disinfect tools. Remove infected
+                debris promptly. Pre-harvest sprays of
+                <strong> Streptomycin (0.01%)</strong> or{" "}
+                <strong>Copper oxychloride (0.25%)</strong> can help suppress
+                bacterial load.
+              </p>
+            </div>
+
+            {/* Black Rot */}
+            <div className="mb-10">
+              <h3 className="text-2xl font-semibold text-[#8E1616] mb-2">
+                2. Black Rot
+              </h3>
+              <p className="text-gray-700 mb-2">
+                <strong>Cause:</strong>{" "}
+                <em>Xanthomonas campestris pv. campestris</em>, a bacterial
+                pathogen that infects vascular tissues.
+              </p>
+              <p className="text-gray-700 mb-2">
+                <strong>Symptoms:</strong> V-shaped yellow lesions appear on
+                leaf edges, progressing inward along veins. The veins often turn
+                black due to bacterial colonization.
+              </p>
+              <p className="text-gray-700 mb-2">
+                <strong>Favorable Conditions:</strong> Warm, humid weather and
+                contaminated irrigation water help spread the pathogen.
+              </p>
+              <p className="text-gray-700 mb-2">
+                <strong>Management:</strong> Use certified, pathogen-free seeds
+                and rotate crops with non-cruciferous varieties for at least two
+                years. Apply <strong>copper-based bactericides</strong> or{" "}
+                <strong>neem oil sprays</strong> for suppression. Avoid
+                sprinkler irrigation.
+              </p>
+            </div>
+
+            {/* Downy Mildew */}
+            <div className="mb-10">
+              <h3 className="text-2xl font-semibold text-[#8E1616] mb-2">
+                3. Downy Mildew
+              </h3>
+              <p className="text-gray-700 mb-2">
+                <strong>Cause:</strong> <em>Hyaloperonospora parasitica</em>{" "}
+                (formerly <em>Peronospora parasitica</em>), a fungal-like
+                organism.
+              </p>
+              <p className="text-gray-700 mb-2">
+                <strong>Symptoms:</strong> Pale-yellow patches form on the upper
+                leaf surface with white or grayish mold growth underneath. In
+                severe infections, leaves curl, dry, and fall prematurely.
+              </p>
+              <p className="text-gray-700 mb-2">
+                <strong>Favorable Conditions:</strong> Cool (10–18°C), moist,
+                and foggy environments favor disease development.
+              </p>
+              <p className="text-gray-700 mb-2">
+                <strong>Management:</strong> Ensure proper air circulation and
+                avoid overhead watering. Apply fungicides like{" "}
+                <strong>Metalaxyl (0.2%)</strong> or{" "}
+                <strong>Mancozeb (0.25%)</strong> at early signs of infection.
+                Resistant varieties should be prioritized.
+              </p>
+            </div>
+
+            {/* Healthy Class */}
+            <div className="mb-10">
+              <h3 className="text-2xl font-semibold text-[#8E1616] mb-2">
+                4. Healthy Class
+              </h3>
+              <p className="text-gray-700 mb-2">
+                <strong>Description:</strong> Cabbages, cauliflowers, or
+                broccoli heads that show no visible signs of infection,
+                discoloration, or decay.
+              </p>
+              <p className="text-gray-700 mb-2">
+                <strong>Maintenance Tips:</strong> Maintain proper soil pH
+                (6.5–7.0), ensure balanced fertilization (avoid excess
+                nitrogen), and rotate with legumes or cereals to rejuvenate soil
+                nutrients.
+              </p>
+              <p className="text-gray-700 mb-2">
+                Regular monitoring, use of organic compost, and early pest
+                detection are key to sustaining healthy crop yields.
+              </p>
+            </div>
+
+            <div className="mt-10 text-sm text-gray-600 italic">
+              “Healthy crops today mean a sustainable tomorrow — learn, detect,
+              and act early with CabbageAI.”
+            </div>
           </section>
         )}
-
       </main>
 
-      <footer className=" absolute bottom-3 left-[45%] text-center text-sm text-white">Powered by cauliflowerAI </footer>
+      <footer className=" absolute bottom-3 left-[45%] text-center text-sm text-white">
+        Powered by cauliflowerAI{" "}
+      </footer>
 
       {/* small loader CSS */}
       <style>{`.loader{width:36px;height:36px;border-radius:50%;border:4px solid rgba(0,0,0,0.08);border-top-color:#8E1616;animation:spin 1s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}`}</style>
     </div>
-  )
+  );
 }
