@@ -358,7 +358,7 @@ export default function App() {
               <p className="text-gray-700 mb-4">
                 This project goes beyond cauliflower and broccoli. It lays the
                 groundwork for an AI-powered agricultural revolution, capable of
-                extending to other crops like cabbage, spinach, and lettuce. The
+                extending to other crops like Cauliflower, spinach, and lettuce. The
                 vision is to build an ecosystem where every farmer has a smart
                 AI assistant capable of diagnosing plant health instantly.
               </p>
@@ -373,7 +373,7 @@ export default function App() {
           {page === "learn" && (
             <section className="max-w-5xl mx-auto bg-white p-5 sm:p-8 md:p-10 mt-10 rounded-2xl shadow-lg text-[#1D1616]">
               <h2 className="text-3xl font-bold mb-6 text-[#8E1616]">
-                Learn: Cabbage Diseases
+                Learn: Cauliflower Diseases
               </h2>
               <p className="text-gray-700 mb-8">
                 Early identification of plant diseases is key to saving crops
@@ -493,7 +493,7 @@ export default function App() {
 
               <div className="mt-10 text-sm text-gray-600 italic">
                 “Healthy crops today mean a sustainable tomorrow — learn,
-                detect, and act early with CabbageAI.”
+                detect, and act early with CauliflowerAI.”
               </div>
             </section>
           )}
