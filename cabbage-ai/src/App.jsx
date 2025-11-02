@@ -5,44 +5,29 @@ const BACKEND_URL = "https://cabbage-ai.onrender.com/predict";
 
 function Nav({ page, setPage }) {
   return (
-    <nav className="w-full flex items-center justify-between py-4 px-6 md:px-12 ">
-      <div className="flex items-center gap-4">
-        <div className="w-10 h-10 rounded-md bg-[#D84040] flex items-center justify-center text-white font-bold">
+    <nav className="w-full flex flex-wrap items-center justify-between py-4 px-4 sm:px-8 md:px-12 bg-[#1D1616]">
+      <div className="flex items-center gap-3 mb-2 sm:mb-0">
+        <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-md bg-[#D84040] flex items-center justify-center text-white font-bold text-sm sm:text-base">
           CA
         </div>
-        <h1 className="text-xl font-semibold text-white">cauliflowerAI</h1>
+        <h1 className="text-lg sm:text-xl font-semibold text-white">
+          cauliflowerAI
+        </h1>
       </div>
-      <div className="flex items-center gap-4">
-        <button
-          onClick={() => setPage("home")}
-          className={`px-3 py-2 rounded cursor-pointer ${
-            page === "home"
-              ? "bg-[#8E1616] text-white"
-              : "text-white hover:bg-[#f5dcdc] hover:text-[#D84040]"
-          }`}
-        >
-          Home
-        </button>
-        <button
-          onClick={() => setPage("learn")}
-          className={`px-3 py-2 rounded cursor-pointer ${
-            page === "learn"
-              ? "bg-[#8E1616] text-white"
-              : "text-white hover:bg-[#f5dcdc] hover:text-[#D84040]"
-          }`}
-        >
-          Learn
-        </button>
-        <button
-          onClick={() => setPage("about")}
-          className={`px-3 py-2 rounded cursor-pointer ${
-            page === "about"
-              ? "bg-[#8E1616] text-white"
-              : "text-white hover:bg-[#f5dcdc] hover:text-[#D84040]"
-          }`}
-        >
-          About
-        </button>
+      <div className="flex flex-wrap items-center gap-2 sm:gap-4">
+        {["home", "learn", "about"].map((tab) => (
+          <button
+            key={tab}
+            onClick={() => setPage(tab)}
+            className={`px-3 py-2 rounded text-sm sm:text-base cursor-pointer transition-all duration-200 ${
+              page === tab
+                ? "bg-[#8E1616] text-white"
+                : "text-white hover:bg-[#f5dcdc] hover:text-[#D84040]"
+            }`}
+          >
+            {tab.charAt(0).toUpperCase() + tab.slice(1)}
+          </button>
+        ))}
       </div>
     </nav>
   );
@@ -107,7 +92,7 @@ function UploadBox({ onFileSelected, uploading, previewUrl }) {
             <img
               src={previewUrl}
               alt="preview"
-              className="max-h-[300px] object-contain rounded-md shadow"
+              className="w-full max-h-[300px] sm:max-h-[400px] object-contain rounded-md shadow"
             />
           </div>
         )}
@@ -245,272 +230,278 @@ export default function App() {
     <div className="min-h-screen bg-[#1D1616] text-[#1D1616]">
       <Nav page={page} setPage={setPage} />
 
-      <main className="py-10 border-2">
-        {page === "home" && (
-          <section>
-            <div className="w-full mx-auto px-32">
-              <h2 className="text-3xl font-bold text-white mb-4">
-                Diagnose cauliflower health — upload a photo
+      <div className="w-full max-w-7xl mx-auto px-2 sm:px-4">
+        <main className="py-10 border-2">
+          {page === "home" && (
+            <section>
+              <div className="w-full mx-auto px-4 sm:px-8 md:px-16 lg:px-32">
+                <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-4">
+                  Diagnose cauliflower health — upload a photo
+                </h2>
+                <p className="text-white mb-6">
+                  Quickly upload a picture of a cauliflower leaf or the full
+                  plant. Our model will analyze and provide likely issues and
+                  suggested treatments.
+                </p>
+
+                <UploadBox
+                  onFileSelected={handleFileSelected}
+                  uploading={uploading}
+                  previewUrl={previewUrl}
+                />
+
+                <div className=" mx-auto mt-6 flex gap-3">
+                  <button
+                    className="px-4 py-2 rounded bg-[#D84040] text-white font-medium cursor-pointer"
+                    onClick={handleUpload}
+                    disabled={uploading}
+                  >
+                    Upload & Predict
+                  </button>
+                  <button
+                    className="px-4 py-2 rounded border border-[#D84040] text-[#D84040] bg-white cursor-pointer"
+                    onClick={() => {
+                      setFile(null);
+                      setPreviewUrl(null);
+                      setResult(null);
+                    }}
+                  >
+                    Reset
+                  </button>
+                  <div className="ml-auto text-sm text-gray-500 flex items-center gap-3">
+                    <div className="w-3 h-3 rounded-full bg-[#1D1616]" />
+                  </div>
+                </div>
+
+                <ResultCard result={result} />
+              </div>
+            </section>
+          )}
+
+          {page === "about" && (
+            <section className="max-w-5xl mx-auto bg-white p-5 sm:p-8 md:p-10 mt-10 rounded-2xl shadow-lg text-[#1D1616]">
+              <h2 className="text-3xl font-bold mb-4 text-[#8E1616]">
+                About the Project
               </h2>
-              <p className="text-white mb-6">
-                Quickly upload a picture of a cauliflower leaf or the full
-                plant. Our model will analyze and provide likely issues and
-                suggested treatments.
+
+              <p className="text-gray-700 leading-relaxed mb-4">
+                <strong>Project Title:</strong> Real-Time Detection and Quality
+                Grading of Cauliflower and Broccoli Using YOLOv8 Deep Learning
               </p>
 
-              <UploadBox
-                onFileSelected={handleFileSelected}
-                uploading={uploading}
-                previewUrl={previewUrl}
-              />
+              <p className="text-gray-700 mb-4">
+                Agriculture is the foundation of our global food supply, yet
+                diseases in crops like cauliflower and broccoli continue to
+                threaten yields and farmer livelihoods. Traditional inspection
+                methods are slow, subjective, and often lead to late detection.
+                Our project tackles this issue by leveraging{" "}
+                <strong>YOLOv8 Deep Learning</strong> for real-time image-based
+                disease detection and quality grading.
+              </p>
 
-              <div className=" mx-auto mt-6 flex gap-3">
-                <button
-                  className="px-4 py-2 rounded bg-[#D84040] text-white font-medium cursor-pointer"
-                  onClick={handleUpload}
-                  disabled={uploading}
-                >
-                  Upload & Predict
-                </button>
-                <button
-                  className="px-4 py-2 rounded border border-[#D84040] text-[#D84040] bg-white cursor-pointer"
-                  onClick={() => {
-                    setFile(null);
-                    setPreviewUrl(null);
-                    setResult(null);
-                  }}
-                >
-                  Reset
-                </button>
-                <div className="ml-auto text-sm text-gray-500 flex items-center gap-3">
-                  <div className="w-3 h-3 rounded-full bg-[#1D1616]" />
-                </div>
+              <p className="text-gray-700 mb-4">
+                The system identifies three major diseases —{" "}
+                <em>Bacterial Soft Rot</em>, <em>Black Rot</em>, and{" "}
+                <em>Downy Mildew</em> — and classifies samples into market
+                quality categories such as <strong>Good</strong>,{" "}
+                <strong>Fair</strong>, and <strong>Poor</strong>. By merging and
+                cleaning data from four Roboflow sources, we trained a robust
+                model capable of high accuracy under real-world farm conditions.
+              </p>
+
+              <ul className="list-disc list-inside text-gray-700 mb-4">
+                <li>
+                  <strong>mAP@0.5:</strong> 90.28%
+                </li>
+                <li>
+                  <strong>Precision:</strong> 93.05%
+                </li>
+                <li>
+                  <strong>Recall:</strong> 86.38%
+                </li>
+              </ul>
+
+              <p className="text-gray-700 mb-8">
+                These results validate the system’s readiness for deployment in
+                web, mobile, and drone-based agricultural solutions. The goal is
+                to bring AI directly into the hands of farmers — improving
+                yield, minimizing disease spread, and driving smarter,
+                data-backed decision-making.
+              </p>
+
+              <h3 className="text-2xl font-semibold mb-3 text-[#8E1616]">
+                Contributions
+              </h3>
+              <ul className="list-disc list-inside text-gray-700 mb-6">
+                <li>
+                  <strong>Hemant Kumar:</strong> Led frontend development and
+                  full-stack integration. Built the React + Tailwind interface
+                  and established seamless communication between the user
+                  uploads and backend predictions.
+                </li>
+                <li>
+                  <strong>Prajwal Nagle:</strong> Engineered the deep learning
+                  pipeline, including dataset preprocessing, augmentation, and
+                  YOLOv8 optimization to balance accuracy and speed.
+                </li>
+                <li>
+                  <strong>Sailesh Kar:</strong> Conducted research, performance
+                  benchmarking, and technical documentation — ensuring academic
+                  rigor and aligning the model’s results with industry
+                  benchmarks.
+                </li>
+              </ul>
+
+              <h3 className="text-2xl font-semibold mb-3 text-[#8E1616]">
+                Impact & Vision
+              </h3>
+              <p className="text-gray-700 mb-4">
+                This project goes beyond cauliflower and broccoli. It lays the
+                groundwork for an AI-powered agricultural revolution, capable of
+                extending to other crops like cabbage, spinach, and lettuce. The
+                vision is to build an ecosystem where every farmer has a smart
+                AI assistant capable of diagnosing plant health instantly.
+              </p>
+
+              <p className="text-gray-700 italic">
+                “Empowering agriculture through innovation — one leaf at a
+                time.”
+              </p>
+            </section>
+          )}
+
+          {page === "learn" && (
+            <section className="max-w-5xl mx-auto bg-white p-5 sm:p-8 md:p-10 mt-10 rounded-2xl shadow-lg text-[#1D1616]">
+              <h2 className="text-3xl font-bold mb-6 text-[#8E1616]">
+                Learn: Cabbage Diseases
+              </h2>
+              <p className="text-gray-700 mb-8">
+                Early identification of plant diseases is key to saving crops
+                and maintaining high yield quality. Below are the major diseases
+                detected by our AI model, along with their symptoms, causes, and
+                recommended management practices.
+              </p>
+
+              {/* Bacterial Soft Rot */}
+              <div className="mb-10">
+                <h3 className="text-2xl font-semibold text-[#8E1616] mb-2">
+                  1. Bacterial Soft Rot
+                </h3>
+                <p className="text-gray-700 mb-2">
+                  <strong>Cause:</strong> <em>Pectobacterium carotovorum</em>{" "}
+                  and <em>Erwinia carotovora</em> — bacteria that invade plant
+                  tissues through wounds or natural openings.
+                </p>
+                <p className="text-gray-700 mb-2">
+                  <strong>Symptoms:</strong> Watery, mushy, and foul-smelling
+                  decay usually starting at the stem base or inner leaves. The
+                  affected tissues become slimy and collapse quickly.
+                </p>
+                <p className="text-gray-700 mb-2">
+                  <strong>Favorable Conditions:</strong> High humidity and
+                  temperatures between 25–35°C accelerate bacterial growth.
+                </p>
+                <p className="text-gray-700 mb-2">
+                  <strong>Management:</strong> Avoid overhead irrigation, ensure
+                  proper field drainage, and disinfect tools. Remove infected
+                  debris promptly. Pre-harvest sprays of
+                  <strong> Streptomycin (0.01%)</strong> or{" "}
+                  <strong>Copper oxychloride (0.25%)</strong> can help suppress
+                  bacterial load.
+                </p>
               </div>
 
-              <ResultCard result={result} />
-            </div>
-          </section>
-        )}
+              {/* Black Rot */}
+              <div className="mb-10">
+                <h3 className="text-2xl font-semibold text-[#8E1616] mb-2">
+                  2. Black Rot
+                </h3>
+                <p className="text-gray-700 mb-2">
+                  <strong>Cause:</strong>{" "}
+                  <em>Xanthomonas campestris pv. campestris</em>, a bacterial
+                  pathogen that infects vascular tissues.
+                </p>
+                <p className="text-gray-700 mb-2">
+                  <strong>Symptoms:</strong> V-shaped yellow lesions appear on
+                  leaf edges, progressing inward along veins. The veins often
+                  turn black due to bacterial colonization.
+                </p>
+                <p className="text-gray-700 mb-2">
+                  <strong>Favorable Conditions:</strong> Warm, humid weather and
+                  contaminated irrigation water help spread the pathogen.
+                </p>
+                <p className="text-gray-700 mb-2">
+                  <strong>Management:</strong> Use certified, pathogen-free
+                  seeds and rotate crops with non-cruciferous varieties for at
+                  least two years. Apply{" "}
+                  <strong>copper-based bactericides</strong> or{" "}
+                  <strong>neem oil sprays</strong> for suppression. Avoid
+                  sprinkler irrigation.
+                </p>
+              </div>
 
-        {page === "about" && (
-          <section className="max-w-4xl mx-auto bg-white p-10 mt-10 rounded-2xl shadow-lg text-[#1D1616]">
-            <h2 className="text-3xl font-bold mb-4 text-[#8E1616]">
-              About the Project
-            </h2>
+              {/* Downy Mildew */}
+              <div className="mb-10">
+                <h3 className="text-2xl font-semibold text-[#8E1616] mb-2">
+                  3. Downy Mildew
+                </h3>
+                <p className="text-gray-700 mb-2">
+                  <strong>Cause:</strong> <em>Hyaloperonospora parasitica</em>{" "}
+                  (formerly <em>Peronospora parasitica</em>), a fungal-like
+                  organism.
+                </p>
+                <p className="text-gray-700 mb-2">
+                  <strong>Symptoms:</strong> Pale-yellow patches form on the
+                  upper leaf surface with white or grayish mold growth
+                  underneath. In severe infections, leaves curl, dry, and fall
+                  prematurely.
+                </p>
+                <p className="text-gray-700 mb-2">
+                  <strong>Favorable Conditions:</strong> Cool (10–18°C), moist,
+                  and foggy environments favor disease development.
+                </p>
+                <p className="text-gray-700 mb-2">
+                  <strong>Management:</strong> Ensure proper air circulation and
+                  avoid overhead watering. Apply fungicides like{" "}
+                  <strong>Metalaxyl (0.2%)</strong> or{" "}
+                  <strong>Mancozeb (0.25%)</strong> at early signs of infection.
+                  Resistant varieties should be prioritized.
+                </p>
+              </div>
 
-            <p className="text-gray-700 leading-relaxed mb-4">
-              <strong>Project Title:</strong> Real-Time Detection and Quality
-              Grading of Cauliflower and Broccoli Using YOLOv8 Deep Learning
-            </p>
+              {/* Healthy Class */}
+              <div className="mb-10">
+                <h3 className="text-2xl font-semibold text-[#8E1616] mb-2">
+                  4. Healthy Class
+                </h3>
+                <p className="text-gray-700 mb-2">
+                  <strong>Description:</strong> Cabbages, cauliflowers, or
+                  broccoli heads that show no visible signs of infection,
+                  discoloration, or decay.
+                </p>
+                <p className="text-gray-700 mb-2">
+                  <strong>Maintenance Tips:</strong> Maintain proper soil pH
+                  (6.5–7.0), ensure balanced fertilization (avoid excess
+                  nitrogen), and rotate with legumes or cereals to rejuvenate
+                  soil nutrients.
+                </p>
+                <p className="text-gray-700 mb-2">
+                  Regular monitoring, use of organic compost, and early pest
+                  detection are key to sustaining healthy crop yields.
+                </p>
+              </div>
 
-            <p className="text-gray-700 mb-4">
-              Agriculture is the foundation of our global food supply, yet
-              diseases in crops like cauliflower and broccoli continue to
-              threaten yields and farmer livelihoods. Traditional inspection
-              methods are slow, subjective, and often lead to late detection.
-              Our project tackles this issue by leveraging{" "}
-              <strong>YOLOv8 Deep Learning</strong> for real-time image-based
-              disease detection and quality grading.
-            </p>
+              <div className="mt-10 text-sm text-gray-600 italic">
+                “Healthy crops today mean a sustainable tomorrow — learn,
+                detect, and act early with CabbageAI.”
+              </div>
+            </section>
+          )}
+        </main>
+      </div>
 
-            <p className="text-gray-700 mb-4">
-              The system identifies three major diseases —{" "}
-              <em>Bacterial Soft Rot</em>, <em>Black Rot</em>, and{" "}
-              <em>Downy Mildew</em> — and classifies samples into market quality
-              categories such as <strong>Good</strong>, <strong>Fair</strong>,
-              and <strong>Poor</strong>. By merging and cleaning data from four
-              Roboflow sources, we trained a robust model capable of high
-              accuracy under real-world farm conditions.
-            </p>
-
-            <ul className="list-disc list-inside text-gray-700 mb-4">
-              <li>
-                <strong>mAP@0.5:</strong> 90.28%
-              </li>
-              <li>
-                <strong>Precision:</strong> 93.05%
-              </li>
-              <li>
-                <strong>Recall:</strong> 86.38%
-              </li>
-            </ul>
-
-            <p className="text-gray-700 mb-8">
-              These results validate the system’s readiness for deployment in
-              web, mobile, and drone-based agricultural solutions. The goal is
-              to bring AI directly into the hands of farmers — improving yield,
-              minimizing disease spread, and driving smarter, data-backed
-              decision-making.
-            </p>
-
-            <h3 className="text-2xl font-semibold mb-3 text-[#8E1616]">
-              Contributions
-            </h3>
-            <ul className="list-disc list-inside text-gray-700 mb-6">
-              <li>
-                <strong>Hemant Kumar:</strong> Led frontend development and
-                full-stack integration. Built the React + Tailwind interface and
-                established seamless communication between the user uploads and
-                backend predictions.
-              </li>
-              <li>
-                <strong>Prajwal Nagle:</strong> Engineered the deep learning
-                pipeline, including dataset preprocessing, augmentation, and
-                YOLOv8 optimization to balance accuracy and speed.
-              </li>
-              <li>
-                <strong>Sailesh Kar:</strong> Conducted research, performance
-                benchmarking, and technical documentation — ensuring academic
-                rigor and aligning the model’s results with industry benchmarks.
-              </li>
-            </ul>
-
-            <h3 className="text-2xl font-semibold mb-3 text-[#8E1616]">
-              Impact & Vision
-            </h3>
-            <p className="text-gray-700 mb-4">
-              This project goes beyond cauliflower and broccoli. It lays the
-              groundwork for an AI-powered agricultural revolution, capable of
-              extending to other crops like cabbage, spinach, and lettuce. The
-              vision is to build an ecosystem where every farmer has a smart AI
-              assistant capable of diagnosing plant health instantly.
-            </p>
-
-            <p className="text-gray-700 italic">
-              “Empowering agriculture through innovation — one leaf at a time.”
-            </p>
-          </section>
-        )}
-
-        {page === "learn" && (
-          <section className="max-w-4xl mx-auto bg-white p-10 mt-10 rounded-2xl shadow-lg text-[#1D1616]">
-            <h2 className="text-3xl font-bold mb-6 text-[#8E1616]">
-              Learn: Cabbage, Cauliflower & Broccoli Diseases
-            </h2>
-            <p className="text-gray-700 mb-8">
-              Early identification of plant diseases is key to saving crops and
-              maintaining high yield quality. Below are the major diseases
-              detected by our AI model, along with their symptoms, causes, and
-              recommended management practices.
-            </p>
-
-            {/* Bacterial Soft Rot */}
-            <div className="mb-10">
-              <h3 className="text-2xl font-semibold text-[#8E1616] mb-2">
-                1. Bacterial Soft Rot
-              </h3>
-              <p className="text-gray-700 mb-2">
-                <strong>Cause:</strong> <em>Pectobacterium carotovorum</em> and{" "}
-                <em>Erwinia carotovora</em> — bacteria that invade plant tissues
-                through wounds or natural openings.
-              </p>
-              <p className="text-gray-700 mb-2">
-                <strong>Symptoms:</strong> Watery, mushy, and foul-smelling
-                decay usually starting at the stem base or inner leaves. The
-                affected tissues become slimy and collapse quickly.
-              </p>
-              <p className="text-gray-700 mb-2">
-                <strong>Favorable Conditions:</strong> High humidity and
-                temperatures between 25–35°C accelerate bacterial growth.
-              </p>
-              <p className="text-gray-700 mb-2">
-                <strong>Management:</strong> Avoid overhead irrigation, ensure
-                proper field drainage, and disinfect tools. Remove infected
-                debris promptly. Pre-harvest sprays of
-                <strong> Streptomycin (0.01%)</strong> or{" "}
-                <strong>Copper oxychloride (0.25%)</strong> can help suppress
-                bacterial load.
-              </p>
-            </div>
-
-            {/* Black Rot */}
-            <div className="mb-10">
-              <h3 className="text-2xl font-semibold text-[#8E1616] mb-2">
-                2. Black Rot
-              </h3>
-              <p className="text-gray-700 mb-2">
-                <strong>Cause:</strong>{" "}
-                <em>Xanthomonas campestris pv. campestris</em>, a bacterial
-                pathogen that infects vascular tissues.
-              </p>
-              <p className="text-gray-700 mb-2">
-                <strong>Symptoms:</strong> V-shaped yellow lesions appear on
-                leaf edges, progressing inward along veins. The veins often turn
-                black due to bacterial colonization.
-              </p>
-              <p className="text-gray-700 mb-2">
-                <strong>Favorable Conditions:</strong> Warm, humid weather and
-                contaminated irrigation water help spread the pathogen.
-              </p>
-              <p className="text-gray-700 mb-2">
-                <strong>Management:</strong> Use certified, pathogen-free seeds
-                and rotate crops with non-cruciferous varieties for at least two
-                years. Apply <strong>copper-based bactericides</strong> or{" "}
-                <strong>neem oil sprays</strong> for suppression. Avoid
-                sprinkler irrigation.
-              </p>
-            </div>
-
-            {/* Downy Mildew */}
-            <div className="mb-10">
-              <h3 className="text-2xl font-semibold text-[#8E1616] mb-2">
-                3. Downy Mildew
-              </h3>
-              <p className="text-gray-700 mb-2">
-                <strong>Cause:</strong> <em>Hyaloperonospora parasitica</em>{" "}
-                (formerly <em>Peronospora parasitica</em>), a fungal-like
-                organism.
-              </p>
-              <p className="text-gray-700 mb-2">
-                <strong>Symptoms:</strong> Pale-yellow patches form on the upper
-                leaf surface with white or grayish mold growth underneath. In
-                severe infections, leaves curl, dry, and fall prematurely.
-              </p>
-              <p className="text-gray-700 mb-2">
-                <strong>Favorable Conditions:</strong> Cool (10–18°C), moist,
-                and foggy environments favor disease development.
-              </p>
-              <p className="text-gray-700 mb-2">
-                <strong>Management:</strong> Ensure proper air circulation and
-                avoid overhead watering. Apply fungicides like{" "}
-                <strong>Metalaxyl (0.2%)</strong> or{" "}
-                <strong>Mancozeb (0.25%)</strong> at early signs of infection.
-                Resistant varieties should be prioritized.
-              </p>
-            </div>
-
-            {/* Healthy Class */}
-            <div className="mb-10">
-              <h3 className="text-2xl font-semibold text-[#8E1616] mb-2">
-                4. Healthy Class
-              </h3>
-              <p className="text-gray-700 mb-2">
-                <strong>Description:</strong> Cabbages, cauliflowers, or
-                broccoli heads that show no visible signs of infection,
-                discoloration, or decay.
-              </p>
-              <p className="text-gray-700 mb-2">
-                <strong>Maintenance Tips:</strong> Maintain proper soil pH
-                (6.5–7.0), ensure balanced fertilization (avoid excess
-                nitrogen), and rotate with legumes or cereals to rejuvenate soil
-                nutrients.
-              </p>
-              <p className="text-gray-700 mb-2">
-                Regular monitoring, use of organic compost, and early pest
-                detection are key to sustaining healthy crop yields.
-              </p>
-            </div>
-
-            <div className="mt-10 text-sm text-gray-600 italic">
-              “Healthy crops today mean a sustainable tomorrow — learn, detect,
-              and act early with CabbageAI.”
-            </div>
-          </section>
-        )}
-      </main>
-
-      <footer className=" absolute bottom-3 left-[45%] text-center text-sm text-white">
-        Powered by cauliflowerAI{" "}
+      <footer className="mt-12 py-6 text-center text-xs sm:text-sm text-white bg-[#1D1616]">
+        Powered by cauliflowerAI
       </footer>
 
       {/* small loader CSS */}
