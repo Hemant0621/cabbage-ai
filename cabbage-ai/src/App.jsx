@@ -33,7 +33,7 @@ function Nav({ page, setPage }) {
   );
 }
 
-function UploadBox({ onFileSelected, uploading, previewUrl }) {
+function UploadBox({ onFileSelected, uploading, previewUrl, progress }) {
   const fileInputRef = useRef();
   const [isDragOver, setIsDragOver] = useState(false);
 
@@ -99,9 +99,17 @@ function UploadBox({ onFileSelected, uploading, previewUrl }) {
 
         {uploading && (
           <div className="absolute inset-0 bg-white/60 flex items-center justify-center">
-            <div className="text-center">
-              <div className="loader mb-3" />
-              <p className="text-[#1D1616] font-medium">Processing...</p>
+            <div className="text-center w-64">
+              <p className="text-[#1D1616] font-medium mb-3">Processing...</p>
+              <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                <div
+                  className="bg-green-500 h-3 rounded-full transition-all duration-300"
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+              <p className="text-sm text-gray-600 mt-1">
+                {Math.round(progress)}%
+              </p>
             </div>
           </div>
         )}
@@ -178,6 +186,7 @@ export default function App() {
   const [previewUrl, setPreviewUrl] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [result, setResult] = useState(null);
+  const [progress, setProgress] = useState(0);
 
   function handleFileSelected(f) {
     setFile(f);
@@ -187,39 +196,51 @@ export default function App() {
   }
 
   async function handleUpload() {
-  if (!file) return alert("Select an image first");
-  setUploading(true);
-  setResult(null);
+    if (!file) return alert("Select an image first");
+    setUploading(true);
+    setProgress(0);
+    setResult(null);
 
-  const formData = new FormData();
-  formData.append("file", file);
+    const formData = new FormData();
+    formData.append("file", file);
 
-  try {
-    const res = await axios.post(`${BACKEND_URL}/predict`, formData, {
-      timeout: 120000,
-      withCredentials: false,
-    });
+    let elapsed = 0;
+    const totalTime = 60000;
+    const interval = 300;
 
-    const parsed = parsePrediction(res.data);
-    setResult(parsed);
-  } catch (err) {
-    console.error("Upload/prediction failed:", err);
-    alert("Prediction failed. Check console for more details.");
-  } finally {
-    setUploading(false);
+    const progressTimer = setInterval(() => {
+      elapsed += interval;
+      setProgress((elapsed / totalTime) * 100);
+    }, interval);
+
+    try {
+      const res = await axios.post(`${BACKEND_URL}/predict`, formData, {
+        timeout: 120000,
+        withCredentials: false,
+      });
+
+      clearInterval(progressTimer);
+      setProgress(100);
+
+      setTimeout(() => {
+        const parsed = parsePrediction(res.data);
+        setResult(parsed);
+        setUploading(false);
+      }, 500);
+    } catch (err) {
+      clearInterval(progressTimer);
+      setProgress(100);
+      console.error("Upload/prediction failed:", err);
+      alert("Prediction failed. Check console for details.");
+      setUploading(false);
+    }
   }
-}
-
 
   function parsePrediction(data) {
-    // If backend returns an object like { label, confidence, description }
     if (!data) return null;
     if (data.label && data.confidence) return { predictions: [data] };
-    // If already shaped
     if (Array.isArray(data.predictions) || data.predictions) return data;
-    // If backend returns { prediction: {...} }
     if (data.prediction) return { predictions: [data.prediction] };
-    // Otherwise attempt to coerce
     if (Array.isArray(data)) return { predictions: data };
     return { predictions: [{ label: JSON.stringify(data).slice(0, 120) }] };
   }
@@ -246,6 +267,7 @@ export default function App() {
                   onFileSelected={handleFileSelected}
                   uploading={uploading}
                   previewUrl={previewUrl}
+                  progress={progress}
                 />
 
                 <div className=" mx-auto mt-6 flex gap-3">
@@ -356,9 +378,9 @@ export default function App() {
               <p className="text-gray-700 mb-4">
                 This project goes beyond cauliflower and broccoli. It lays the
                 groundwork for an AI-powered agricultural revolution, capable of
-                extending to other crops like Cauliflower, spinach, and lettuce. The
-                vision is to build an ecosystem where every farmer has a smart
-                AI assistant capable of diagnosing plant health instantly.
+                extending to other crops like Cauliflower, spinach, and lettuce.
+                The vision is to build an ecosystem where every farmer has a
+                smart AI assistant capable of diagnosing plant health instantly.
               </p>
 
               <p className="text-gray-700 italic">
