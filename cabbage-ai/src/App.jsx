@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import axios from "axios";
 
 const BACKEND_URL = "https://cabbage-ai.onrender.com";
@@ -33,7 +33,7 @@ function Nav({ page, setPage }) {
   );
 }
 
-function UploadBox({ onFileSelected, uploading, previewUrl }) {
+function UploadBox({ onFileSelected, uploading, previewUrl, progress }) {
   const fileInputRef = useRef();
   const [isDragOver, setIsDragOver] = useState(false);
 
@@ -99,9 +99,17 @@ function UploadBox({ onFileSelected, uploading, previewUrl }) {
 
         {uploading && (
           <div className="absolute inset-0 bg-white/60 flex items-center justify-center">
-            <div className="text-center">
-              <div className="loader mb-3" />
-              <p className="text-[#1D1616] font-medium">Processing...</p>
+            <div className="text-center w-64">
+              <p className="text-[#1D1616] font-medium mb-3">Processing...</p>
+              <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                <div
+                  className="bg-green-500 h-3 rounded-full transition-all duration-300"
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+              <p className="text-sm text-gray-600 mt-1">
+                {Math.round(progress)}%
+              </p>
             </div>
           </div>
         )}
@@ -113,7 +121,6 @@ function UploadBox({ onFileSelected, uploading, previewUrl }) {
 function ResultCard({ result }) {
   if (!result) return null;
 
-  // Support single object or array
   const predictions = Array.isArray(result.predictions)
     ? result.predictions
     : result.predictions
@@ -134,7 +141,7 @@ function ResultCard({ result }) {
           <div className="flex items-center justify-between">
             <div>
               <div className="text-md font-semibold text-[#8E1616]">
-                {p.label || p.disease || "Unknown"}
+                {p.label || "Unknown"}
               </div>
               <div className="text-xs text-gray-500">
                 Confidence:{" "}
@@ -143,29 +150,7 @@ function ResultCard({ result }) {
                   : p.confidence}
               </div>
             </div>
-            <div className="text-sm text-gray-600">
-              {p.severity ? `Severity: ${p.severity}` : ""}
-            </div>
           </div>
-
-          {p.description && (
-            <p className="mt-3 text-sm text-gray-700">{p.description}</p>
-          )}
-
-          {p.pesticides && p.pesticides.length > 0 && (
-            <div className="mt-3">
-              <div className="text-sm font-medium text-[#1D1616]">
-                Suggested pesticides / treatments
-              </div>
-              <ul className="mt-2 list-disc list-inside text-sm text-gray-700">
-                {p.pesticides.map((d, i) => (
-                  <li key={i}>{d}</li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          {p.tips && <div className="mt-3 text-sm text-gray-700">{p.tips}</div>}
         </div>
       ))}
     </div>
@@ -178,6 +163,8 @@ export default function App() {
   const [previewUrl, setPreviewUrl] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [result, setResult] = useState(null);
+  const [progress, setProgress] = useState(0);
+  const progressRef = useRef(null);
 
   function handleFileSelected(f) {
     setFile(f);
@@ -187,42 +174,39 @@ export default function App() {
   }
 
   async function handleUpload() {
-  if (!file) return alert("Select an image first");
-  setUploading(true);
-  setResult(null);
+    if (!file) return alert("Select an image first");
+    setUploading(true);
+    setProgress(0);
+    setResult(null);
 
-  const formData = new FormData();
-  formData.append("file", file);
-  console.log("running...")
-  try {
-    const res = await axios.post(`${BACKEND_URL}/predict`, formData, {
-      timeout: 120000,
-      withCredentials: false,
-    });
-    console.log(res)
+    const formData = new FormData();
+    formData.append("file", file);
 
-    const parsed = parsePrediction(res.data);
-    setResult(parsed);
-  } catch (err) {
-    console.error("Upload/prediction failed:", err);
-    alert("Prediction failed. Check console for more details.");
-  } finally {
-    setUploading(false);
-  }
-}
+    let fakeProgress = 0;
+    const progressTimer = setInterval(() => {
+      fakeProgress += (100 - fakeProgress) * 0.007;
+      if (fakeProgress >= 98) fakeProgress = 98; 
+      setProgress(fakeProgress);
+    }, 300);
 
+    try {
+      const res = await axios.post(`${BACKEND_URL}/predict`, formData,);
 
-  function parsePrediction(data) {
-    // If backend returns an object like { label, confidence, description }
-    if (!data) return null;
-    if (data.label && data.confidence) return { predictions: [data] };
-    // If already shaped
-    if (Array.isArray(data.predictions) || data.predictions) return data;
-    // If backend returns { prediction: {...} }
-    if (data.prediction) return { predictions: [data.prediction] };
-    // Otherwise attempt to coerce
-    if (Array.isArray(data)) return { predictions: data };
-    return { predictions: [{ label: JSON.stringify(data).slice(0, 120) }] };
+      clearInterval(progressTimer);
+      setProgress(100);
+
+      setTimeout(() => {
+        const parsed = parsePrediction(res.data);
+        setResult(parsed);
+        setUploading(false);
+      }, 500);
+    } catch (err) {
+      clearInterval(progressTimer);
+      setProgress(100);
+      console.error("Upload/prediction failed:", err);
+      alert("Prediction failed. Check console for details.");
+      setUploading(false);
+    }
   }
 
   return (
@@ -247,6 +231,7 @@ export default function App() {
                   onFileSelected={handleFileSelected}
                   uploading={uploading}
                   previewUrl={previewUrl}
+                  progress={progress}
                 />
 
                 <div className=" mx-auto mt-6 flex gap-3">
@@ -263,248 +248,23 @@ export default function App() {
                       setFile(null);
                       setPreviewUrl(null);
                       setResult(null);
+                      setUploading(false);
+                      setProgress(0);
                     }}
                   >
                     Reset
                   </button>
-                  <div className="ml-auto text-sm text-gray-500 flex items-center gap-3">
-                    <div className="w-3 h-3 rounded-full bg-[#1D1616]" />
-                  </div>
                 </div>
 
                 <ResultCard result={result} />
               </div>
             </section>
           )}
-
-          {page === "about" && (
-            <section className="max-w-5xl mx-auto bg-white p-5 sm:p-8 md:p-10 mt-10 rounded-2xl shadow-lg text-[#1D1616]">
-              <h2 className="text-3xl font-bold mb-4 text-[#8E1616]">
-                About the Project
-              </h2>
-
-              <p className="text-gray-700 leading-relaxed mb-4">
-                <strong>Project Title:</strong> Real-Time Detection and Quality
-                Grading of Cauliflower and Broccoli Using YOLOv8 Deep Learning
-              </p>
-
-              <p className="text-gray-700 mb-4">
-                Agriculture is the foundation of our global food supply, yet
-                diseases in crops like cauliflower and broccoli continue to
-                threaten yields and farmer livelihoods. Traditional inspection
-                methods are slow, subjective, and often lead to late detection.
-                Our project tackles this issue by leveraging{" "}
-                <strong>YOLOv8 Deep Learning</strong> for real-time image-based
-                disease detection and quality grading.
-              </p>
-
-              <p className="text-gray-700 mb-4">
-                The system identifies three major diseases —{" "}
-                <em>Bacterial Soft Rot</em>, <em>Black Rot</em>, and{" "}
-                <em>Downy Mildew</em> — and classifies samples into market
-                quality categories such as <strong>Good</strong>,{" "}
-                <strong>Fair</strong>, and <strong>Poor</strong>. By merging and
-                cleaning data from four Roboflow sources, we trained a robust
-                model capable of high accuracy under real-world farm conditions.
-              </p>
-
-              <ul className="list-disc list-inside text-gray-700 mb-4">
-                <li>
-                  <strong>mAP@0.5:</strong> 90.28%
-                </li>
-                <li>
-                  <strong>Precision:</strong> 93.05%
-                </li>
-                <li>
-                  <strong>Recall:</strong> 86.38%
-                </li>
-              </ul>
-
-              <p className="text-gray-700 mb-8">
-                These results validate the system’s readiness for deployment in
-                web, mobile, and drone-based agricultural solutions. The goal is
-                to bring AI directly into the hands of farmers — improving
-                yield, minimizing disease spread, and driving smarter,
-                data-backed decision-making.
-              </p>
-
-              <h3 className="text-2xl font-semibold mb-3 text-[#8E1616]">
-                Contributions
-              </h3>
-              <ul className="list-disc list-inside text-gray-700 mb-6">
-                <li>
-                  <strong>Hemant Kumar:</strong> Led frontend development and
-                  full-stack integration. Built the React + Tailwind interface
-                  and established seamless communication between the user
-                  uploads and backend predictions.
-                </li>
-                <li>
-                  <strong>Prajwal Nagle:</strong> Engineered the deep learning
-                  pipeline, including dataset preprocessing, augmentation, and
-                  YOLOv8 optimization to balance accuracy and speed.
-                </li>
-                <li>
-                  <strong>Sailesh Kar:</strong> Conducted research, performance
-                  benchmarking, and technical documentation — ensuring academic
-                  rigor and aligning the model’s results with industry
-                  benchmarks.
-                </li>
-              </ul>
-
-              <h3 className="text-2xl font-semibold mb-3 text-[#8E1616]">
-                Impact & Vision
-              </h3>
-              <p className="text-gray-700 mb-4">
-                This project goes beyond cauliflower and broccoli. It lays the
-                groundwork for an AI-powered agricultural revolution, capable of
-                extending to other crops like Cauliflower, spinach, and lettuce. The
-                vision is to build an ecosystem where every farmer has a smart
-                AI assistant capable of diagnosing plant health instantly.
-              </p>
-
-              <p className="text-gray-700 italic">
-                “Empowering agriculture through innovation — one leaf at a
-                time.”
-              </p>
-            </section>
-          )}
-
-          {page === "learn" && (
-            <section className="max-w-5xl mx-auto bg-white p-5 sm:p-8 md:p-10 mt-10 rounded-2xl shadow-lg text-[#1D1616]">
-              <h2 className="text-3xl font-bold mb-6 text-[#8E1616]">
-                Learn: Cauliflower Diseases
-              </h2>
-              <p className="text-gray-700 mb-8">
-                Early identification of plant diseases is key to saving crops
-                and maintaining high yield quality. Below are the major diseases
-                detected by our AI model, along with their symptoms, causes, and
-                recommended management practices.
-              </p>
-
-              {/* Bacterial Soft Rot */}
-              <div className="mb-10">
-                <h3 className="text-2xl font-semibold text-[#8E1616] mb-2">
-                  1. Bacterial Soft Rot
-                </h3>
-                <p className="text-gray-700 mb-2">
-                  <strong>Cause:</strong> <em>Pectobacterium carotovorum</em>{" "}
-                  and <em>Erwinia carotovora</em> — bacteria that invade plant
-                  tissues through wounds or natural openings.
-                </p>
-                <p className="text-gray-700 mb-2">
-                  <strong>Symptoms:</strong> Watery, mushy, and foul-smelling
-                  decay usually starting at the stem base or inner leaves. The
-                  affected tissues become slimy and collapse quickly.
-                </p>
-                <p className="text-gray-700 mb-2">
-                  <strong>Favorable Conditions:</strong> High humidity and
-                  temperatures between 25–35°C accelerate bacterial growth.
-                </p>
-                <p className="text-gray-700 mb-2">
-                  <strong>Management:</strong> Avoid overhead irrigation, ensure
-                  proper field drainage, and disinfect tools. Remove infected
-                  debris promptly. Pre-harvest sprays of
-                  <strong> Streptomycin (0.01%)</strong> or{" "}
-                  <strong>Copper oxychloride (0.25%)</strong> can help suppress
-                  bacterial load.
-                </p>
-              </div>
-
-              {/* Black Rot */}
-              <div className="mb-10">
-                <h3 className="text-2xl font-semibold text-[#8E1616] mb-2">
-                  2. Black Rot
-                </h3>
-                <p className="text-gray-700 mb-2">
-                  <strong>Cause:</strong>{" "}
-                  <em>Xanthomonas campestris pv. campestris</em>, a bacterial
-                  pathogen that infects vascular tissues.
-                </p>
-                <p className="text-gray-700 mb-2">
-                  <strong>Symptoms:</strong> V-shaped yellow lesions appear on
-                  leaf edges, progressing inward along veins. The veins often
-                  turn black due to bacterial colonization.
-                </p>
-                <p className="text-gray-700 mb-2">
-                  <strong>Favorable Conditions:</strong> Warm, humid weather and
-                  contaminated irrigation water help spread the pathogen.
-                </p>
-                <p className="text-gray-700 mb-2">
-                  <strong>Management:</strong> Use certified, pathogen-free
-                  seeds and rotate crops with non-cruciferous varieties for at
-                  least two years. Apply{" "}
-                  <strong>copper-based bactericides</strong> or{" "}
-                  <strong>neem oil sprays</strong> for suppression. Avoid
-                  sprinkler irrigation.
-                </p>
-              </div>
-
-              {/* Downy Mildew */}
-              <div className="mb-10">
-                <h3 className="text-2xl font-semibold text-[#8E1616] mb-2">
-                  3. Downy Mildew
-                </h3>
-                <p className="text-gray-700 mb-2">
-                  <strong>Cause:</strong> <em>Hyaloperonospora parasitica</em>{" "}
-                  (formerly <em>Peronospora parasitica</em>), a fungal-like
-                  organism.
-                </p>
-                <p className="text-gray-700 mb-2">
-                  <strong>Symptoms:</strong> Pale-yellow patches form on the
-                  upper leaf surface with white or grayish mold growth
-                  underneath. In severe infections, leaves curl, dry, and fall
-                  prematurely.
-                </p>
-                <p className="text-gray-700 mb-2">
-                  <strong>Favorable Conditions:</strong> Cool (10–18°C), moist,
-                  and foggy environments favor disease development.
-                </p>
-                <p className="text-gray-700 mb-2">
-                  <strong>Management:</strong> Ensure proper air circulation and
-                  avoid overhead watering. Apply fungicides like{" "}
-                  <strong>Metalaxyl (0.2%)</strong> or{" "}
-                  <strong>Mancozeb (0.25%)</strong> at early signs of infection.
-                  Resistant varieties should be prioritized.
-                </p>
-              </div>
-
-              {/* Healthy Class */}
-              <div className="mb-10">
-                <h3 className="text-2xl font-semibold text-[#8E1616] mb-2">
-                  4. Healthy Class
-                </h3>
-                <p className="text-gray-700 mb-2">
-                  <strong>Description:</strong> Cabbages, cauliflowers, or
-                  broccoli heads that show no visible signs of infection,
-                  discoloration, or decay.
-                </p>
-                <p className="text-gray-700 mb-2">
-                  <strong>Maintenance Tips:</strong> Maintain proper soil pH
-                  (6.5–7.0), ensure balanced fertilization (avoid excess
-                  nitrogen), and rotate with legumes or cereals to rejuvenate
-                  soil nutrients.
-                </p>
-                <p className="text-gray-700 mb-2">
-                  Regular monitoring, use of organic compost, and early pest
-                  detection are key to sustaining healthy crop yields.
-                </p>
-              </div>
-
-              <div className="mt-10 text-sm text-gray-600 italic">
-                “Healthy crops today mean a sustainable tomorrow — learn,
-                detect, and act early with CauliflowerAI.”
-              </div>
-            </section>
-          )}
         </main>
       </div>
-
       <footer className="mt-12 py-6 text-center text-xs sm:text-sm text-white bg-[#1D1616]">
         Powered by cauliflowerAI
       </footer>
-
-      {/* small loader CSS */}
-      <style>{`.loader{width:36px;height:36px;border-radius:50%;border:4px solid rgba(0,0,0,0.08);border-top-color:#8E1616;animation:spin 1s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}`}</style>
     </div>
   );
 }
