@@ -41,7 +41,7 @@ async def predict(file: UploadFile = File(...)):
     try:
         # Read image
         image = Image.open(io.BytesIO(await file.read()))
-
+        print("predicting....")
         # Run inference
         results = model.predict(image)
 
@@ -54,7 +54,7 @@ async def predict(file: UploadFile = File(...)):
                     "label": model.names[int(box.cls[0])],
                     "confidence": float(box.conf[0]),
                 })
-
+        print(preds)
         return JSONResponse(content={"predictions": preds})
     except Exception as e:
         return JSONResponse(content={"error": str(e)}, status_code=500)
